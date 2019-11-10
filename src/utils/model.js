@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const DB_URL = "mongodb://localhost:27017/blog_react";
+const DB_URL = "mongodb://localhost:27017/book_system";
 
 mongoose.connect(DB_URL, { useUnifiedTopology: true, useNewUrlParser: true });
 
