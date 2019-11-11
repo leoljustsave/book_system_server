@@ -54,12 +54,12 @@ route.post("/user", async (ctx, next) => {
   const userInfo = Object.assign({}, body, defUserInfo);
 
   // TODO: 存储数据库, 返回 user 的 token
-  const user = await MUser.create(userInfo);
+  const userRes = await MUser.create(userInfo);
 
   ctx.body = {
     code: 0,
     msg: "add user success",
-    token: user._id,
+    token: userRes._id,
   };
 });
 

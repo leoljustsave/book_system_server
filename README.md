@@ -1,22 +1,29 @@
-interface
+book 对象
 
-## front
+- id
+- name 书名
+- cover 封面
+- author 作者
+- press 出版社
+- desc 简介
+- catalog 章节信息
+- class 类别
+- like 点赞人数
+- collect 收藏人数
 
-### user
+user 对象
 
-- login
+base
+- id
+- name
+- avatar
+- account
+- password
 
-- register
-
-- getInfo
-
-- setInfo
-
-### book
-
-- upload
-
-## back
-
-
-- auth
+addition
+- likeTag
+- article
+- readSet
+- readBook
+- collectBook
+- uploadBook

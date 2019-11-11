@@ -17,14 +17,15 @@ mongoose.connection.on("error", function(err) {
 const models = {
   book: {
     name: { type: String, require: true },
-    cover: { type: String, require: false },
     author: { type: String, require: false },
-    press: { type: Array, require: true },
+    press: { type: String, require: true },
     desc: { type: String, require: true },
     catalog: { type: Array, require: true },
     class: { type: Array, require: true },
     like: { type: Number, require: false },
-    collect: { type: Number, require: false }
+    collect: { type: Number, require: false },
+    cover: { type: String, require: false },
+    path: { type: String, require: false }
   },
   user: {
     name: { type: String, require: true },
