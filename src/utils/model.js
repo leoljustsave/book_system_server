@@ -16,16 +16,17 @@ mongoose.connection.on("error", function(err) {
 
 const models = {
   book: {
-    name: { type: String, require: true },
-    author: { type: String, require: false },
-    press: { type: String, require: true },
-    desc: { type: String, require: true },
-    catalog: { type: Array, require: true },
-    class: { type: Array, require: true },
-    like: { type: Number, require: false },
-    collect: { type: Number, require: false },
-    cover: { type: String, require: false },
-    path: { type: String, require: false }
+    name: { type: String, require: true }, // 书名
+    author: { type: String, require: false }, // 作者
+    press: { type: String, require: true }, // 出版社
+    desc: { type: String, require: true }, // 描述
+    catalog: { type: Array, require: true }, // 目录
+    class: { type: Array, require: true }, // 分类
+    like: { type: Number, require: false }, // 点赞人数
+    collect: { type: Number, require: false }, // 收藏人数
+    cover: { type: String, require: false }, // 封面
+    path: { type: String, require: false }, // 路径
+    md5: { type: String, require: true } // md5
   },
   user: {
     name: { type: String, require: true },

@@ -1,6 +1,14 @@
 const Koa = require("koa");
 const koaBody = require("koa-body");
 
+// global
+global.errorMsg = (ctx, msg) => {
+  ctx.body = {
+    code: 1,
+    msg: msg
+  };
+};
+
 // router info
 const bookRouter = require("./router/book.r.js");
 const userRouter = require("./router/user.r.js");

@@ -39,6 +39,16 @@ route.get("/admin/book", async (ctx, next) => {
 // 根据 id 删除指定书籍信息
 // 没有的话就删除全部书籍信息
 route.delete("/admin/book", async (ctx, next) => {
+  const { token } = ctx.request.headers;
+
+  if (token !== "51410") {
+    ctx.body = {
+      code: 1,
+      msg: "access deny"
+    };
+    return false;
+  }
+
   const { id } = ctx.request.query;
   const data = id
     ? await MBook.deleteOne({ _id: id })
