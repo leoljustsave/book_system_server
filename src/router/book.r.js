@@ -6,6 +6,7 @@ const config = require("../config");
 
 const route = new router();
 const MBook = model.getModel("book");
+const MCover = model.getModel("cover");
 const env = config.env.lizhi;
 
 // 对特定书籍执行操作前要先进行 id 判空
@@ -31,8 +32,7 @@ route.all("/book", async (ctx, next) => {
     }
   }
   ctx.info = info;
-
-  next();
+  await next();
 });
 
 // 获取书籍
@@ -40,11 +40,21 @@ route.get("/book", async (ctx, next) => {
   const { id } = ctx;
   try {
     const bookRes = await MBook.findById(id);
-    ctx.body = bookRes;
+    if (bookRes) {
+      ctx.body = {
+        code: 0,
+        msg: "get book success"
+      };
+    } else {
+      ctx.body = {
+        code: 0,
+        msg: "no this book"
+      };
+    }
   } catch (e) {
     ctx.body = {
       code: 1,
-      msg: "do not have this book"
+      msg: "get book error"
     };
   }
 });
@@ -53,9 +63,12 @@ route.get("/book", async (ctx, next) => {
 route.post("/book", async (ctx, next) => {
   const { book, cover } = ctx.request.files;
   const { info } = ctx;
+  const bookExt = path.extname(book.name);
+  const coverExt = path.extname(cover.name);
 
-  // 获取书籍 md5 信息
+  // 获取书籍 / 封面的 md5 信息
   const bookMd5 = file.getFileMd5(book.path);
+  const coverMd5 = file.getFileMd5(cover.path);
 
   // 非必要书籍属性的默认值
   const defBookInfo = {
@@ -71,46 +84,56 @@ route.post("/book", async (ctx, next) => {
     md5: bookMd5
   };
 
-  // 书籍文件存储
-  // TODO: 获取上传文件后缀
-  const bookFileOption = {
-    filepath: path.join(env.put, "/book"),
-    filename: `${bookMd5}${path.book.path}`
-  };
-  const bookPath = path.join(env.put, `/book/${bookMd5}.epub`);
-
   // 若书籍存在则不进行存储操作 直接使用文件
-  const findRes = await MBook.findOne({ md5: bookMd5 });
-  ctx.body = {
-    res: findRes
-  };
-  return false;
+  // TODO: 同一用户重复上传
+  const findBookRes = await MBook.findOne({ md5: bookMd5 });
+  const findCoverRes = await MCover.findOne({ md5: coverMd5 });
 
-  if (!file.fileExist(bookPath)) {
-    console.log("save book");
-    const bookRes = await file.putFile(book, bookFileOption);
-    defBookInfo.path = `${env.get}/book/${bookMd5}`;
+  if (!findCoverRes) {
+    console.log("save cover");
 
     // 书籍封面文件存储
+    const coverMd5Name = `${coverMd5 + coverExt}`;
     const coverFileOption = {
       filepath: path.join(env.put, "/book/cover"),
-      filename: `${bookMd5}.jpg`
+      filename: coverMd5Name
     };
-    const coverRes = await file.putFile(cover, coverFileOption);
-    defBookInfo.cover = `${env.get}/book/cover/${coverFileOption.filename}`;
+    await file.putFile(cover, coverFileOption);
+    await MCover.create({ name: cover.name, path: "", md5: coverMd5 });
+    defBookInfo.cover = `${env.get}/book/cover/${coverMd5Name}`;
   } else {
-    defBookInfo.path = bookPath;
-    defBookInfo.cover = path.join(env.put, `/book/cover/${bookMd5}.jpg`);
+    defBookInfo.cover = findCoverRes.path;
   }
 
-  // 信息整合
-  const bookInfo = Object.assign({}, info, defBookInfo);
+  if (!findBookRes) {
+    console.log("save book");
+
+    // 书籍文件存储
+    const bookMd5Name = `${bookMd5 + bookExt}`;
+    const bookFileOption = {
+      filepath: path.join(env.put, "/book"),
+      filename: bookMd5Name
+    };
+    await file.putFile(book, bookFileOption);
+    defBookInfo.path = `${env.get}/book/${bookMd5Name}`;
+
+    // 书籍封面文件存储
+    const coverMd5Name = `${coverMd5 + coverExt}`;
+    const coverFileOption = {
+      filepath: path.join(env.put, "/book/cover"),
+      filename: coverMd5Name
+    };
+    await file.putFile(cover, coverFileOption);
+    defBookInfo.cover = `${env.get}/book/cover/${coverMd5Name}`;
+  } else {
+    defBookInfo.path = findBookRes.path;
+  }
 
   // 数据库存储处理
+  const bookInfo = Object.assign({}, info, defBookInfo);
   const bookStoreRes = await MBook.create(bookInfo);
 
-  ctx.body = { res: bookStoreRes };
-  return false;
+  ctx.body = { code: 0, msg: "save success" };
 });
 
 // 修改书籍信息

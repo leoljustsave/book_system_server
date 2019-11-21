@@ -18,10 +18,18 @@ const app = new Koa();
 
 app.use(koaBody({ multipart: true, maxFields: 10000, maxFieldsSize: "10mb" }));
 
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    throw new Error(err);
+  }
+});
+
 // use router
-app.use(bookRouter.routes());
-app.use(userRouter.routes());
 app.use(adminRouter.routes());
+app.use(userRouter.routes());
+app.use(bookRouter.routes());
 
 app.listen(3000, () => {
   console.log("3000 is running ...");

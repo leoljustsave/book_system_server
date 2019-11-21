@@ -28,6 +28,11 @@ const models = {
     path: { type: String, require: false }, // 路径
     md5: { type: String, require: true } // md5
   },
+  cover: {
+    name: { type: String, require: true },
+    path: { type: String, require: true },
+    md5: { type: String, require: true }
+  },
   user: {
     name: { type: String, require: true },
     avatar: { type: String, require: true },
