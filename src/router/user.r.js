@@ -25,24 +25,14 @@ route.get("/user", async (ctx, next) => {
 route.post("/user", async (ctx, next) => {
   const { body, files } = ctx.request;
   const { avatar } = files;
+	// 获取文件后缀
+  const avatarExt = path.extname(avatar.name);
 
-  if (avatar) {
-    ctx.body = {
-      code: 2,
-      msg: "missing avatar"
-    };
-  }
-
-  let fileOption = {
-    filepath: path.join(env.put, "/avatar"),
-    filename: avatar.name
-  };
-
-  // 存储头像文件
-  file.putFile(avatar, fileOption);
+  // 获取相应 md5 信息
+  const avatarMd5 = file.getFileMd5(avatar.path);
 
   const defUserInfo = {
-    avatar: `${config.env.lizhi.get}/avatar/${avatar.name}`,
+    avatar: '',
     like: [],
     article: [],
     readSet: {},
@@ -50,6 +40,26 @@ route.post("/user", async (ctx, next) => {
     collecctBook: [],
     uploadBook: []
   };
+
+	const findAvatarRes = await MUser.findOne({ md5: avatarMd5 });
+  console.log(findAvatarRes);
+  return false;
+
+  // 头像存储
+	if (!findAvatarRes) {
+		console.log("save cover");
+
+		// 头像文件存储
+		const avatarMd5Name = `${avatarMd5 + avatarExt}`;
+		const avatarFileOption = {
+			filepath: path.join(env.put, "/user/avatar"),
+			filename: avatarMd5Name
+		};
+		await file.putFile(avatar, avatarFileOption);
+		defUserInfo.avatar = `${env.get}/user/avatar/${avatarMd5Name}`;
+	} else {
+		defUserInfo.avatar = findAvatarRes.cover;
+  }
 
   const userInfo = Object.assign({}, body, defUserInfo);
 
