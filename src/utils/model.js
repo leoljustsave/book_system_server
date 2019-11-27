@@ -34,13 +34,15 @@ const models = {
 		md5: { type: String, require: true }
 	},
 	user: {
-		name: { type: String, require: true },
-		avatar: { type: String, require: true },
-		account: { type: String, require: true },
-		password: { type: String, require: true },
+		name: { type: String, required: true },
+		avatar: { type: String, required: true },
+		account: { type: String, required: true },
+		password: { type: String, required: true },
 		likeTag: { type: Array, default: [] },
+		likeBook: { type: Array, default: [] },
 		article: { type: Array, default: [] },
-		readSet: { type: Object, require: false },
+		readBook: { type: Array, default: [] },
+		readSet: { type: Object, default: {} },
 		collectBook: { type: Array, default: [] },
 		uploadBook: { type: Array, default: [] }
 	}
