@@ -5,6 +5,10 @@ const env = {
 	}
 };
 
+/**
+ * 用户可配置信息
+ * 密码不在此列 , 单独出来一个接口
+ */
 const userCanConfig = [
 	"name",
 	"likeTag",
@@ -17,6 +21,6 @@ const userCanConfig = [
 	"readSet"
 ];
 
-const bookCanConfig = ["name", "cover", "author", "press", "desc", "class"];
+const bookCanConfig = ["name", "cover", "author", "press", "desc", "tag"];
 
 module.exports = { env, userCanConfig, bookCanConfig };

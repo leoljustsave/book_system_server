@@ -4,6 +4,9 @@ const DB_URL = "mongodb://localhost:27017/book_system";
 
 mongoose.connect(DB_URL, { useUnifiedTopology: true, useNewUrlParser: true });
 
+// mogoose 设置
+mongoose.set("useFindAndModify", false);
+
 // 连接成功
 mongoose.connection.on("connected", function() {
 	console.log("mongodb connecting...");
@@ -21,17 +24,12 @@ const models = {
 		press: { type: String, default: "unknow" }, // 出版社
 		desc: { type: String, require: true }, // 描述
 		catalog: { type: Array, default: [] }, // 目录
-		class: { type: Array, default: [] }, // 分类
+		tag: { type: Array, default: [] }, // 分类
 		like: { type: Number, default: 0 }, // 点赞人数
 		collect: { type: Number, default: 0 }, // 收藏人数
 		cover: { type: String, require: false }, // 封面
 		path: { type: String, require: true }, // 路径
 		md5: { type: String, require: true } // md5
-	},
-	cover: {
-		name: { type: String, require: true },
-		path: { type: String, require: true },
-		md5: { type: String, require: true }
 	},
 	user: {
 		name: { type: String, required: true },

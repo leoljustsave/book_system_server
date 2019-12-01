@@ -20,7 +20,7 @@ const MUser = model.getModel("user");
  * 2 - 用户不存在
  * 3 - 密码错误
  */
-route.post("/user/login", async (ctx, next) => {
+route.post("/user/login", async ctx => {
 	const { account, password } = ctx.request.body;
 	if (!(account && password)) {
 		return (ctx.body = {
@@ -52,17 +52,47 @@ route.post("/user/login", async (ctx, next) => {
 	});
 });
 
-// 获取用户信息
-route.get("/user", async (ctx, next) => {
+/**
+ * 获取用户信息
+ * 0 - 获取用户信息成功
+ * 1 - token 与登录用户不一致
+ * 2 - token 不存在
+ */
+route.get("/user", async ctx => {
 	const { token } = ctx.request.headers;
+
+	if (token !== global.token) {
+		return (ctx.body = {
+			code: 1,
+			msg: "token 与登录用户不一致"
+		});
+	}
+
 	const userRes = await MUser.findById(token);
+	// 该 token 不存在
+	if (!userRes) {
+		return (ctx.body = {
+			code: 2,
+			msg: "token 不存在"
+		});
+	}
+
 	// 过滤重要信息
 	let { password, _id, account, ...data } = userRes._doc;
-	ctx.body = data;
+	ctx.body = {
+		code: 0,
+		msg: "获取用户信息成功",
+		data: data
+	};
 });
 
-// 用户注册
-route.post("/user", async (ctx, next) => {
+/**
+ * 用户注册
+ * 0 - 注册成功
+ * 1 - 参数缺失
+ * 2 - 账号已存在
+ */
+route.post("/user", async ctx => {
 	const { body, files } = ctx.request;
 	const { avatar } = files;
 
@@ -75,21 +105,25 @@ route.post("/user", async (ctx, next) => {
 		});
 	}
 
+	const findRes = await MUser.findOne({ account });
+	if (findRes) {
+		return (ctx.body = {
+			code: 2,
+			msg: "该账号已存在"
+		});
+	}
+
 	const defUserInfo = {
 		avatar: "",
 		readSet: {}
 	};
-	const avatarExt = path.extname(avatar.name);
-	const avatarMd5 = file.getFileMd5(avatar.path);
 
 	// 头像文件存储
-	const avatarMd5Name = `${avatarMd5 + avatarExt}`;
-	const avatarFileOption = {
-		filepath: path.join(env.put, "/user/avatar"),
-		filename: avatarMd5Name
-	};
-	await file.putFile(avatar, avatarFileOption);
-	defUserInfo.avatar = `${env.get}/user/avatar/${avatarMd5Name}`;
+	const avatarName = file.commonFileSave(
+		avatar,
+		path.join(env.put, "/user/file")
+	);
+	defUserInfo.avatar = `${env.get}/user/avatar/${avatarName}`;
 
 	// 整合数据
 	// TODO: 数据加密
@@ -99,47 +133,53 @@ route.post("/user", async (ctx, next) => {
 	const userRes = await MUser.create(userInfo);
 
 	global.token = userRes._id;
-	return (ctx.body = {
-		code: 0,
-		msg: "add user success",
-		token: userRes._id
-	});
+	return (ctx.body = { code: 0, msg: "用户注册成功", token: userRes._id });
 });
 
-// 用户信息修改
-route.patch("/user", (ctx, next) => {
-	const token = ctx.request.header;
+/**
+ * 用户信息修改
+ * 1 - token 与登录用户不一致
+ * 2 - 不存在该用户
+ */
+route.patch("/user", async ctx => {
+	const { token } = ctx.request.headers;
 
-	if (token !== global.token) {
+	// 验证是否和登录用户的 token 一致
+	if (`${token}` !== `${global.token}`) {
 		return (ctx.body = {
 			code: 1,
-			msg: "与登录用户不一致"
+			msg: "token 与登录用户不一致"
 		});
 	}
 
 	const userRes = MUser.findById(token);
 
-	console.log(userRes);
-	return false;
+	if (!userRes) {
+		return (ctx.body = {
+			code: 2,
+			msg: "不存在该用户"
+		});
+	}
 
 	const { body, files } = ctx.request;
 	// 需要修改的数据
 	const info = {};
 
-	// 是否有需要修改的基础信息
-	if (JSON.stringify(body) !== "{}") {
-		// body 不为空
-		for (key in body) {
-			// TODO: 判断是否有不可修改的字段
-			if (config.userCanConfig.includes(key)) {
-				info.key = body.key;
-			}
+	// 过滤信息
+	for (key in body) {
+		if (config.userCanConfig.includes(key)) {
+			info[key] = body[key];
 		}
 	}
 
 	// 是否有需要修改的头像信息
 	if (files.avatar) {
-		info.avatar = files.avatar;
+		const { avatar } = files;
+		const avatarName = await file.commonFileSave(
+			avatar,
+			path.join(env.put, "/user/avatar")
+		);
+		info.avatar = `${env.get}/user/avatar/${avatarName}`;
 	}
 
 	// 判断是否有信息要修改
@@ -149,9 +189,14 @@ route.patch("/user", (ctx, next) => {
 			msg: "没有需要修改的信息"
 		});
 	}
+
 	// TODO: 通过 token 查找信息 , 然后进行信息修改
-	const updateRes = MUser.findByIdAndUpdate(token, info);
-	console.log(updateRes);
+	await MUser.findByIdAndUpdate(token, info);
+
+	ctx.body = {
+		code: 0,
+		msg: "更新成功"
+	};
 });
 
 module.exports = route;

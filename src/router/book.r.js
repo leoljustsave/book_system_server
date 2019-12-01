@@ -6,70 +6,67 @@ const config = require("../config");
 
 const route = new router();
 const MBook = model.getModel("book");
-const MCover = model.getModel("cover");
 const env = config.env.lizhi;
 
-// 对特定书籍执行操作前要先进行 id 判空
-route.all("/book", async (ctx, next) => {
-	const { id } = ctx.request.query;
-	const { body } = ctx.request;
-
-	// if (!id) {
-	//   ctx.body = {
-	//     code: 0,
-	//     msg: "we need an id"
-	//   };
-	//   return false;
-	// }
-	ctx.id = id;
-
-	// 过滤 body 属性字段
-	let info = {};
-	for (key in body) {
-		console.log(key);
-		if (config.bookCanConfig.indexOf(key) + 1) {
-			info.key = body.key;
-		}
-	}
-	ctx.info = info;
-	await next();
-});
-
-// 获取书籍
+/**
+ * 获取书籍信息
+ * 0 - 获取成功
+ * 1 - 参数缺失
+ * 2 - 获取书籍失败
+ * 3 - 书籍不存在
+ */
 route.get("/book", async ctx => {
-	const { id } = ctx;
+	const { id } = ctx.request.query;
+	let bookRes;
+
+	if (!id) {
+		return (ctx.body = {
+			code: 1,
+			msg: "参数缺失"
+		});
+	}
+
 	try {
-		const bookRes = await MBook.findById(id);
-		if (bookRes) {
-			ctx.body = {
-				code: 0,
-				msg: "get book success"
-			};
-		} else {
-			ctx.body = {
-				code: 0,
-				msg: "no this book"
-			};
+		bookRes = await MBook.findById(id);
+		if (!bookRes) {
+			return (ctx.body = {
+				code: 3,
+				msg: "书籍不存在"
+			});
 		}
 	} catch (e) {
-		ctx.body = {
-			code: 1,
-			msg: "get book error"
-		};
+		return (ctx.body = {
+			code: 2,
+			msg: "获取书籍失败"
+		});
 	}
+
+	ctx.body = {
+		code: 0,
+		msg: "书籍获取成功",
+		data: bookRes
+	};
 });
 
-// 上传书籍
+/**
+ * 书籍上传
+ * 0 - 上传成功
+ * 1 - 参数缺失
+ */
 route.post("/book", async ctx => {
 	const { book, cover } = ctx.request.files;
-	const { info } = ctx;
-	// 获取文件后缀
-	const bookExt = path.extname(book.name);
-	const coverExt = path.extname(cover.name);
+	const { body } = ctx.request;
+	const info = {};
 
-	// 获取书籍 / 封面的 md5 信息
+	// 所需参数
+	// TODO: 可优化
+	const { name, author, press, tag, desc, catalog } = body;
+	if (!(name && author && press && desc && tag && catalog)) {
+		return (ctx.body = { code: 1, msg: "参数缺失" });
+	}
+
+	// 获取书籍 md5 信息
 	const bookMd5 = file.getFileMd5(book.path);
-	const coverMd5 = file.getFileMd5(cover.path);
 
 	// 非必要书籍属性的默认值
 	// TODO: 书名过滤后缀
@@ -78,89 +75,105 @@ route.post("/book", async ctx => {
 		md5: bookMd5
 	};
 
+	// 书籍封面文件存储
+	const coverName = await file.commonFileSave(
+		cover,
+		path.join(env.put, "/book/cover")
+	);
+	info.cover = `${env.get}/book/cover/${coverName}`;
+
+	// 书籍本体存储
 	// 若书籍存在则不进行存储操作 直接使用文件
 	// TODO: 同一用户重复上传
 	const findBookRes = await MBook.findOne({ md5: bookMd5 });
-	const findCoverRes = await MCover.findOne({ md5: coverMd5 });
 
-	// 书籍封面存储
-	if (!findCoverRes) {
-		console.log("save cover");
-
-		// 书籍封面文件存储
-		const coverMd5Name = `${coverMd5 + coverExt}`;
-		const coverFileOption = {
-			filepath: path.join(env.put, "/book/cover"),
-			filename: coverMd5Name
-		};
-		await file.putFile(cover, coverFileOption);
-		await MCover.create({ name: cover.name, path: "", md5: coverMd5 });
-		defBookInfo.cover = `${env.get}/book/cover/${coverMd5Name}`;
-	} else {
-		defBookInfo.cover = findCoverRes.path;
-	}
-
-	// 书籍本体存储
 	if (!findBookRes) {
-		console.log("save book");
-
-		// 书籍文件存储
-		const bookMd5Name = `${bookMd5 + bookExt}`;
-		const bookFileOption = {
-			filepath: path.join(env.put, "/book"),
-			filename: bookMd5Name
-		};
-		await file.putFile(book, bookFileOption);
-		defBookInfo.path = `${env.get}/book/${bookMd5Name}`;
-
-		// 书籍封面文件存储
-		const coverMd5Name = `${coverMd5 + coverExt}`;
-		const coverFileOption = {
-			filepath: path.join(env.put, "/book/cover"),
-			filename: coverMd5Name
-		};
-		await file.putFile(cover, coverFileOption);
-		defBookInfo.cover = `${env.get}/book/cover/${coverMd5Name}`;
+		const bookName = await file.commonFileSave(
+			book,
+			path.join(env.put, "/book")
+		);
+		info.path = `${env.get}/book/${bookName}`;
 	} else {
-		defBookInfo.path = findBookRes.path;
+		info.path = findBookRes.path;
 	}
 
 	// 数据库存储处理
 	const bookInfo = Object.assign({}, info, defBookInfo);
-	const bookStoreRes = await MBook.create(bookInfo);
+	await MBook.create(bookInfo);
 
-	ctx.body = { code: 0, msg: "save success" };
+	ctx.body = { code: 0, msg: "书籍上传成功" };
 });
 
 // 修改书籍信息
 route.patch("/book", async ctx => {
-	const { id } = ctx;
-	const { info } = ctx;
+	const { body, files } = ctx.request;
+	const { id } = body;
+	let info = {};
+
+	// id 信息缺失
+	if (!id) {
+		return (ctx.body = { code: 1, msg: "缺失书籍 id" });
+	}
+
+	// 书籍不存在
+	if (!(await MBook.findById(id))) {
+		return (ctx.body = { code: 2, msg: "该书籍不存在" });
+	}
+
+	// 过滤信息
+	for (key in body) {
+		if (config.bookCanConfig.includes(key)) {
+			info[key] = body[key];
+		}
+	}
+
+	// 查看是否有修改封面
+	if (files.cover) {
+		const { cover } = files;
+		const coverName = await file.commonFileSave(
+			cover,
+			path.join(env.put, "/book/cover")
+		);
+		info.cover = `${env.get}/book/cover/${coverName}`;
+	}
 
 	// 执行更新操作
-	const updateRes = await MBook.findOneAndUpdate({ _id: id }, info);
+	await MBook.findByIdAndUpdate(id, info);
 
-	ctx.body = updateRes;
+	ctx.body = { code: 0, msg: "书籍信息更新成功" };
 });
 
 // 删除书籍及其信息
 route.delete("/book", async ctx => {
-	const { id } = ctx;
+	console.log(ctx.request.body);
+	const { id } = ctx.request.body;
 
-	const bookRes = await MBook.findOne({ _id: id });
-	const bookRealPath = bookRes.path.replace(env.get, env.put);
-	const coverRealPath = bookRes.cover.replace(env.get, env.put);
+	if (!id) {
+		return (ctx.body = { code: 1, msg: "id 参数缺失" });
+	}
+
+	// 获取相关信息并找出具体存储路径
+	// const bookRes = await MBook.findById(id);
+
+	// if (!bookRes) {
+	// 	return (ctx.body = { code: 2, msg: "此书籍不存在" });
+	// }
+
+	// const bookRealPath = bookRes.path.replace(env.get, env.put);
+	// const coverRealPath = bookRes.cover.replace(env.get, env.put);
 
 	// TODO: 逻辑整理
 	// 执行删除书籍以及书籍封面
-	let flag = { file: true, data: true };
-	flag.file =
-		(await file.delFile(bookRealPath)) && (await file.delFile(coverRealPath));
+	// await file.delFile(bookRealPath);
+	// await file.delFile(coverRealPath);
 
 	// 删除数据库中的信息
-	flag.data = await MBook.findOneAndDelete({ _id: bookRes._id });
+	flag.data = await MBook.findByIdAndRemove(id);
 
-	ctx.body = flag;
+	ctx.body = {
+		code: 0,
+		msg: "书籍删除成功"
+	};
 });
 
 module.exports = route;
