@@ -15,8 +15,8 @@ const env = config.env.lizhi;
  * 2 - 获取书籍失败
  * 3 - 书籍不存在
  */
-route.get("/book", async ctx => {
-	const { id } = ctx.request.query;
+route.get("/book/:id", async ctx => {
+	const { id } = ctx.params;
 	let bookRes;
 
 	if (!id) {
@@ -105,9 +105,9 @@ route.post("/book", async ctx => {
 });
 
 // 修改书籍信息
-route.patch("/book", async ctx => {
+route.patch("/book/:id", async ctx => {
 	const { body, files } = ctx.request;
-	const { id } = body;
+	const { id } = ctx.params;
 	let info = {};
 
 	// id 信息缺失
@@ -144,31 +144,35 @@ route.patch("/book", async ctx => {
 });
 
 // 删除书籍及其信息
-route.delete("/book", async ctx => {
-	console.log(ctx.request.body);
-	const { id } = ctx.request.body;
+route.delete("/book/:id", async ctx => {
+	const { body } = ctx.request;
+	const { id } = ctx.params;
 
 	if (!id) {
 		return (ctx.body = { code: 1, msg: "id 参数缺失" });
 	}
 
 	// 获取相关信息并找出具体存储路径
-	// const bookRes = await MBook.findById(id);
+	const bookRes = await MBook.findById(id);
 
-	// if (!bookRes) {
-	// 	return (ctx.body = { code: 2, msg: "此书籍不存在" });
-	// }
+	if (!bookRes) {
+		return (ctx.body = { code: 2, msg: "此书籍不存在" });
+	}
 
-	// const bookRealPath = bookRes.path.replace(env.get, env.put);
-	// const coverRealPath = bookRes.cover.replace(env.get, env.put);
+	const bookRealPath = bookRes.path.replace(env.get, env.put);
+	const coverRealPath = bookRes.cover.replace(env.get, env.put);
 
 	// TODO: 逻辑整理
 	// 执行删除书籍以及书籍封面
-	// await file.delFile(bookRealPath);
-	// await file.delFile(coverRealPath);
+	try {
+		await file.delFile(bookRealPath);
+		await file.delFile(coverRealPath);
+	} catch (err) {
+		console.log(err);
+	}
 
 	// 删除数据库中的信息
-	flag.data = await MBook.findByIdAndRemove(id);
+	await MBook.findByIdAndRemove(id);
 
 	ctx.body = {
 		code: 0,

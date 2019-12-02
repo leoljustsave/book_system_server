@@ -49,7 +49,7 @@ const delFile = filepath => {
 	return new Promise((resolve, reject) => {
 		// 判断路径是否存在
 		if (!fs.existsSync(filepath)) {
-			reject(false);
+			reject({ code: 1, msg: "文件不存在" });
 		}
 
 		try {
