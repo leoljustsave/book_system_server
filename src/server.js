@@ -19,13 +19,13 @@ const app = new Koa();
 app.use(koaBody({ multipart: true, maxFields: 10000, maxFieldsSize: "10mb" }));
 
 // 全局错误拦截
-app.use(async (ctx, next) => {
-	try {
-		await next();
-	} catch (err) {
-		throw new Error(err);
-	}
-});
+// app.use(async (ctx, next) => {
+// 	try {
+// 		await next();
+// 	} catch (err) {
+// 		throw new Error(err);
+// 	}
+// });
 
 // use router
 app.use(adminRouter.routes());

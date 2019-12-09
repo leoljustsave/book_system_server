@@ -94,11 +94,12 @@ route.get("/user", async ctx => {
  */
 route.post("/user", async ctx => {
 	const { body, files } = ctx.request;
+	console.log(body);
 	const { avatar } = files;
 
 	// TODO: 验证必要数据
-	const { account, password, name } = body;
-	if (!(account && password && name)) {
+	const { account, password } = body;
+	if (!(account && password)) {
 		return (ctx.body = {
 			code: 1,
 			msg: "参数缺失"
@@ -118,10 +119,12 @@ route.post("/user", async ctx => {
 		readSet: {}
 	};
 
+	avatar.name = `${avatar.name}.jpg`;
+
 	// 头像文件存储
-	const avatarName = file.commonFileSave(
+	const avatarName = await file.commonFileSave(
 		avatar,
-		path.join(env.put, "/user/file")
+		path.join(env.put, "/user/avatar")
 	);
 	defUserInfo.avatar = `${env.get}/user/avatar/${avatarName}`;
 

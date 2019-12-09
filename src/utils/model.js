@@ -32,7 +32,7 @@ const models = {
 		md5: { type: String, require: true } // md5
 	},
 	user: {
-		name: { type: String, required: true },
+		// name: { type: String, required: true },
 		avatar: { type: String, required: true },
 		account: { type: String, required: true },
 		password: { type: String, required: true },
