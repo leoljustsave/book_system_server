@@ -61,12 +61,14 @@ route.post("/user/login", async ctx => {
 route.get("/user", async ctx => {
 	const { token } = ctx.request.headers;
 
-	if (token !== global.token) {
-		return (ctx.body = {
-			code: 1,
-			msg: "token 与登录用户不一致"
-		});
-	}
+	// TODO: 坑 ?
+	// if (`${token}` !== `${global.token}`) {
+	// 	console.log('登录用户为: ', global.token, '请求用户为: ', token);
+	// 	return (ctx.body = {
+	// 		code: 1,
+	// 		msg: "token 与登录用户不一致"
+	// 	});
+	// }
 
 	const userRes = await MUser.findById(token);
 	// 该 token 不存在
@@ -78,7 +80,7 @@ route.get("/user", async ctx => {
 	}
 
 	// 过滤重要信息
-	let { password, _id, account, ...data } = userRes._doc;
+	let { password, _id, ...data } = userRes._doc;
 	ctx.body = {
 		code: 0,
 		msg: "获取用户信息成功",
@@ -147,13 +149,15 @@ route.post("/user", async ctx => {
 route.patch("/user", async ctx => {
 	const { token } = ctx.request.headers;
 
+	// TODO: 坑 ?
 	// 验证是否和登录用户的 token 一致
-	if (`${token}` !== `${global.token}`) {
-		return (ctx.body = {
-			code: 1,
-			msg: "token 与登录用户不一致"
-		});
-	}
+	// if (`${token}` !== `${global.token}`) {
+	// 	console.log('登录用户为: ', global.token, '请求用户为: ', token);
+	// 	return (ctx.body = {
+	// 		code: 1,
+	// 		msg: "token 与登录用户不一致"
+	// 	});
+	// }
 
 	const userRes = MUser.findById(token);
 
