@@ -17,7 +17,6 @@ const env = config.env.lizhi;
  */
 route.get("/book/:id", async ctx => {
 	const { id } = ctx.params;
-	let bookRes;
 
 	if (!id) {
 		return (ctx.body = {
@@ -26,6 +25,7 @@ route.get("/book/:id", async ctx => {
 		});
 	}
 
+	let bookRes;
 	try {
 		bookRes = await MBook.findById(id);
 		if (!bookRes) {

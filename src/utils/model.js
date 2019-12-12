@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const moment = require("moment");
 
 const DB_URL = "mongodb://localhost:27017/book_system";
 
@@ -30,6 +31,22 @@ const models = {
 		cover: { type: String, require: false }, // 封面
 		path: { type: String, require: true }, // 路径
 		md5: { type: String, require: true } // md5
+	},
+	article: {
+		title: { type: String, require: true }, // 文章名
+		author: { type: String, default: "unknow" }, // 作者
+		desc: { type: String, require: true }, // 描述
+		tag: { type: Array, default: [] }, // 分类
+		like: { type: Number, default: 0 }, // 点赞人数
+		collect: { type: Number, default: 0 }, // 收藏人数
+		cover: { type: String, require: false }, // 封面
+		book: { type: String, require: true }, // 相关书籍
+		bookId: { type: String, require: true }, // 相关书籍 id
+		time: {
+			type: String,
+			require: true,
+			default: moment().format("YYYY.MM.DD HH:mm")
+		}
 	},
 	user: {
 		// name: { type: String, required: true },
