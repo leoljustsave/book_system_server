@@ -42,6 +42,7 @@ const models = {
 		cover: { type: String, require: false }, // 封面
 		book: { type: String, require: true }, // 相关书籍
 		bookId: { type: String, require: true }, // 相关书籍 id
+		content: { type: String, require: true}, // 内容
 		time: {
 			type: String,
 			require: true,
