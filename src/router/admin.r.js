@@ -5,6 +5,7 @@ const route = new router();
 
 const MUser = model.getModel("user");
 const MBook = model.getModel("book");
+const MArticle = model.getModel("article");
 
 // =========== about user data ===========
 
@@ -53,6 +54,26 @@ route.delete("/admin/book", async (ctx, next) => {
   const data = id
     ? await MBook.deleteOne({ _id: id })
     : await MBook.deleteMany({});
+  ctx.body = data;
+});
+
+// =========== about article data ===========
+
+// 根据 id 获取指定用户信息
+// 没有的话就获取全部用户信息
+route.get("/admin/article", async (ctx, next) => {
+  const { id } = ctx.request.query;
+  const data = id ? await MArticle.findById(id) : await MArticle.find({});
+  ctx.body = data;
+});
+
+// 根据 id 删除指定用户信息
+// 没有的话就删除全部用户信息
+route.delete("/admin/article", async (ctx, next) => {
+  const { id } = ctx.request.query;
+  const data = id
+    ? await MArticle.deleteOne({ _id: id })
+    : await MArticle.deleteMany({});
   ctx.body = data;
 });
 

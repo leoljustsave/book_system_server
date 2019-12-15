@@ -18,13 +18,6 @@ const env = config.env.lizhi;
 route.get("/book/:id", async ctx => {
 	const { id } = ctx.params;
 
-	if (!id) {
-		return (ctx.body = {
-			code: 1,
-			msg: "参数缺失"
-		});
-	}
-
 	let bookRes;
 	try {
 		bookRes = await MBook.findById(id);
@@ -56,7 +49,6 @@ route.get("/book/:id", async ctx => {
 route.post("/book", async ctx => {
 	const { book, cover } = ctx.request.files;
 	const { body } = ctx.request;
-	const info = {};
 
 	// 所需参数
 	// TODO: 可优化
@@ -64,6 +56,8 @@ route.post("/book", async ctx => {
 	if (!(name && author && press && desc && tag && catalog)) {
 		return (ctx.body = { code: 1, msg: "参数缺失" });
 	}
+
+	let info = { name, author, press, tag, desc, catalog };
 
 	// 获取书籍 md5 信息
 	const bookMd5 = file.getFileMd5(book.path);
@@ -98,8 +92,8 @@ route.post("/book", async ctx => {
 	}
 
 	// 数据库存储处理
-	const bookInfo = Object.assign({}, info, defBookInfo);
-	await MBook.create(bookInfo);
+	Object.assign(info, defBookInfo);
+	await MBook.create(info);
 
 	ctx.body = { code: 0, msg: "书籍上传成功" };
 });
@@ -109,11 +103,6 @@ route.patch("/book/:id", async ctx => {
 	const { body, files } = ctx.request;
 	const { id } = ctx.params;
 	let info = {};
-
-	// id 信息缺失
-	if (!id) {
-		return (ctx.body = { code: 1, msg: "缺失书籍 id" });
-	}
 
 	// 书籍不存在
 	if (!(await MBook.findById(id))) {
@@ -147,10 +136,6 @@ route.patch("/book/:id", async ctx => {
 route.delete("/book/:id", async ctx => {
 	const { body } = ctx.request;
 	const { id } = ctx.params;
-
-	if (!id) {
-		return (ctx.body = { code: 1, msg: "id 参数缺失" });
-	}
 
 	// 获取相关信息并找出具体存储路径
 	const bookRes = await MBook.findById(id);

@@ -33,21 +33,24 @@ const models = {
 		md5: { type: String, require: true } // md5
 	},
 	article: {
-		title: { type: String, require: true }, // 文章名
-		author: { type: String, default: "unknow" }, // 作者
-		desc: { type: String, require: true }, // 描述
-		tag: { type: Array, default: [] }, // 分类
+		title: { type: String, require: true }, // - 文章名
+		author: { type: String, require: true }, // 作者
+		desc: { type: String, require: true }, // - 描述
+		tag: { type: Array, default: [] }, // - 分类
 		like: { type: Number, default: 0 }, // 点赞人数
 		collect: { type: Number, default: 0 }, // 收藏人数
-		cover: { type: String, require: false }, // 封面
+		cover: { type: String, require: false, default: "" }, // - 封面
 		book: { type: String, require: true }, // 相关书籍
 		bookId: { type: String, require: true }, // 相关书籍 id
-		content: { type: String, require: true}, // 内容
+		articleId: { type: String, require: true }, // 关联内容的 id
 		time: {
 			type: String,
 			require: true,
 			default: moment().format("YYYY.MM.DD HH:mm")
 		}
+	},
+	articleData: {
+		content: { type: String, require: true }
 	},
 	user: {
 		// name: { type: String, required: true },
