@@ -52,10 +52,15 @@ route.post("/book", async ctx => {
 
 	// 所需参数
 	// TODO: 可优化
-	const { name, author, press, tag, desc, catalog } = body;
+	let { name, author, press, tag, desc, catalog } = body;
 	if (!(name && author && press && desc && tag && catalog)) {
 		return (ctx.body = { code: 1, msg: "参数缺失" });
 	}
+
+	tag = JSON.parse(tag);
+	catalog = JSON.parse(catalog);
+
+	console.log(typeof tag);
 
 	let info = { name, author, press, tag, desc, catalog };
 

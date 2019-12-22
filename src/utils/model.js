@@ -34,6 +34,7 @@ const models = {
 	},
 	article: {
 		title: { type: String, require: true }, // - 文章名
+		authorId: { type: String, require: true }, // 作者 id
 		author: { type: String, require: true }, // 作者
 		desc: { type: String, require: true }, // - 描述
 		tag: { type: Array, default: [] }, // - 分类

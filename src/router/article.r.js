@@ -1,13 +1,31 @@
 const router = require("koa-router");
 const model = require("../utils/model");
+const url = require("url");
+const queryString = require("query-string");
 
 const route = new router();
 const MBook = model.getModel("book");
 const MArticle = model.getModel("article");
 const MArticleData = model.getModel("articleData");
 
+route.get("/article", async ctx => {
+	const query = queryString.parse(url.parse(ctx.request.url).search);
+	let pageSize = +query.pageSize || 20;
+
+	// 获取指定数量文章
+	const articleRes = await MArticle.find({})
+		.limit(pageSize)
+		.sort({ time: -1 });
+
+	ctx.body = {
+		code: 0,
+		msg: "获取成功",
+		data: articleRes
+	};
+});
+
 /**
- * 获取文章信息
+ * 获取具体文章信息
  * 0 - 获取成功
  * 1 - 参数缺失
  * 2 - 获取文章出错
@@ -43,6 +61,7 @@ route.get("/article/:id", async ctx => {
  * 0 - 添加成功
  * 1 - 参数缺失
  * 2 - 不存在该书籍
+ * 3 - 不存在该用户
  */
 route.post("/article", async ctx => {
 	const { body } = ctx.request;
@@ -57,22 +76,34 @@ route.post("/article", async ctx => {
 
 	// 通过 bookId 查找书名
 	let bookRes = undefined;
-
 	try {
 		bookRes = await MBook.findById(bookId);
 	} catch (err) {
-		console.log('err');
+		console.log("err");
 	}
 
 	if (!bookRes) {
 		return (ctx.body = { code: 2, msg: "不存在该书籍" });
 	}
 
+	// 通过 bookId 查找书名
+	let userRes = undefined;
+	try {
+		userRes = await MUser.findById(token);
+	} catch (err) {
+		console.log("err");
+	}
+
+	if (!userRes) {
+		return (ctx.body = { code: 3, msg: "不存在该用户" });
+	}
+
 	// 数据相关处理以及整合
 	tag = JSON.parse(tag);
 	let info = { title, desc, tag, bookId };
 	const defArticleInfo = {
-		author: token,
+		authorId: token,
+		author: userRes.account,
 		book: bookRes.name
 	};
 

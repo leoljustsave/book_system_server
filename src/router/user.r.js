@@ -169,6 +169,7 @@ route.patch("/user", async ctx => {
 	}
 
 	const { body, files } = ctx.request;
+
 	// 需要修改的数据
 	const info = {};
 
