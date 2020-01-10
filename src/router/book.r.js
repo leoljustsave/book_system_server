@@ -10,7 +10,7 @@ const MTagList = model.getModel("tagList");
 const env = config.env.lizhi;
 
 /**
- * 获取书籍信息
+ * 获取指定书籍信息
  * 0 - 获取成功
  * 1 - 参数缺失
  * 2 - 获取书籍失败
@@ -40,6 +40,33 @@ route.get("/book/:id", async ctx => {
     msg: "书籍获取成功",
     data: bookRes
   };
+<<<<<<< HEAD
+=======
+});
+
+route.get("/book", async ctx => {
+  const tagList = await MTagList.find({});
+  let bookRes = [];
+
+  let len = tagList.length;
+  for (let i = 0; i < len; i++) {
+    let { tagName, _id } = tagList[i];
+    let res = await MBook.find({ "tag.tagName": tagName });
+    if (res.length) {
+      bookRes.push({
+        id: _id,
+        name: tagName,
+        bookGroup: res
+      });
+    }
+  }
+
+  ctx.body = {
+    code: 0,
+    msg: "获取成功",
+    data: bookRes
+  };
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 });
 
 /**
@@ -53,17 +80,26 @@ route.post("/book", async ctx => {
 
   // 所需参数
   // TODO: 可优化
+<<<<<<< HEAD
   let { name, author, press, tag, desc, catalog } = body;
   if (!(name && author && press && desc && tag && catalog)) {
+=======
+  let { name, author, press, tag, desc, catalog, pubdate } = body;
+  if (!(name && author && press && catalog)) {
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
     return (ctx.body = { code: 1, msg: "参数缺失" });
   }
 
   tag = JSON.parse(tag);
   catalog = JSON.parse(catalog);
 
+<<<<<<< HEAD
   console.log(typeof tag);
 
   let info = { name, author, press, tag, desc, catalog };
+=======
+  let info = { name, author, press, tag, desc, catalog, pubdate };
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 
   // 获取书籍 md5 信息
   const bookMd5 = file.getFileMd5(book.path);
@@ -171,10 +207,59 @@ route.delete("/book/:id", async ctx => {
   };
 });
 
+<<<<<<< HEAD
 route.get("/book/tagList", async ctx => {
 	const tagRes = await MTagList.find({});
 	
 	
+=======
+/**
+ * 获取 tag 列表
+ */
+route.get("/bookTag", async ctx => {
+  const tagRes = await MTagList.find({});
+  let tag = [];
+
+  tagRes.map(item => {
+    let { _id, tagName } = item;
+    tag.push({ _id, tagName });
+  });
+
+  ctx.body = {
+    code: 0,
+    data: tag
+  };
+});
+
+/**
+ * 增加 tag
+ * 1 - 参数缺乏
+ * 2 - tag 已存在
+ */
+route.post("/bookTag", async ctx => {
+  const { tag } = ctx.request.body;
+
+  if (!tag) {
+    return (ctx.body = {
+      code: 1,
+      msg: "参数缺乏"
+    });
+  }
+
+  let tagRes = await MTagList.findOne({ tagName: tag });
+  if (tagRes) {
+    return (ctx.body = {
+      code: 2,
+      msg: "tag 已存在"
+    });
+  }
+  tagRes = await MTagList.create({ tagName: tag });
+
+  ctx.body = {
+    code: 0,
+    msg: "tag 添加成功"
+  };
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 });
 
 module.exports = route;

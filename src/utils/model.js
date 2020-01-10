@@ -23,6 +23,10 @@ const models = {
     name: { type: String, require: true }, // 书名
     author: { type: String, default: "unknow" }, // 作者
     press: { type: String, default: "unknow" }, // 出版社
+<<<<<<< HEAD
+=======
+    pubdate: { type: String, default: "unknow" }, // 出版日期
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
     desc: { type: String, require: true }, // 描述
     catalog: { type: Array, default: [] }, // 目录
     tag: { type: Array, default: [] }, // 分类
@@ -32,9 +36,12 @@ const models = {
     path: { type: String, require: true }, // 路径
     md5: { type: String, require: true } // md5
   },
+<<<<<<< HEAD
   tagList: {
     tagName: { type: String, require: true }
   },
+=======
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
   article: {
     title: { type: String, require: true }, // - 文章名
     authorId: { type: String, require: true }, // 作者 id
@@ -57,7 +64,10 @@ const models = {
     content: { type: String, require: true }
   },
   user: {
+<<<<<<< HEAD
     // name: { type: String, required: true },
+=======
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
     avatar: { type: String, required: true },
     account: { type: String, required: true },
     password: { type: String, required: true },
@@ -68,6 +78,12 @@ const models = {
     readSet: { type: Object, default: {} },
     collectBook: { type: Array, default: [] },
     uploadBook: { type: Array, default: [] }
+<<<<<<< HEAD
+=======
+  },
+  tagList: {
+    tagName: { type: String, required: true }
+>>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
   }
 };
 
