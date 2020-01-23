@@ -16,12 +16,12 @@ const env = config.env.lizhi;
  * 2 - 获取书籍失败
  * 3 - 书籍不存在
  */
-route.get("/book/:id", async ctx => {
-  const { id } = ctx.params;
+route.get("/book/:bookId", async ctx => {
+  const { bookId } = ctx.params;
 
   let bookRes;
   try {
-    bookRes = await MBook.findById(id);
+    bookRes = await MBook.findById(bookId);
     if (!bookRes) {
       return (ctx.body = {
         code: 3,
@@ -40,8 +40,6 @@ route.get("/book/:id", async ctx => {
     msg: "书籍获取成功",
     data: bookRes
   };
-<<<<<<< HEAD
-=======
 });
 
 route.get("/book", async ctx => {
@@ -66,7 +64,6 @@ route.get("/book", async ctx => {
     msg: "获取成功",
     data: bookRes
   };
->>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 });
 
 /**
@@ -80,26 +77,15 @@ route.post("/book", async ctx => {
 
   // 所需参数
   // TODO: 可优化
-<<<<<<< HEAD
-  let { name, author, press, tag, desc, catalog } = body;
-  if (!(name && author && press && desc && tag && catalog)) {
-=======
   let { name, author, press, tag, desc, catalog, pubdate } = body;
   if (!(name && author && press && catalog)) {
->>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
     return (ctx.body = { code: 1, msg: "参数缺失" });
   }
 
   tag = JSON.parse(tag);
   catalog = JSON.parse(catalog);
 
-<<<<<<< HEAD
-  console.log(typeof tag);
-
-  let info = { name, author, press, tag, desc, catalog };
-=======
   let info = { name, author, press, tag, desc, catalog, pubdate };
->>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 
   // 获取书籍 md5 信息
   const bookMd5 = file.getFileMd5(book.path);
@@ -207,12 +193,6 @@ route.delete("/book/:id", async ctx => {
   };
 });
 
-<<<<<<< HEAD
-route.get("/book/tagList", async ctx => {
-	const tagRes = await MTagList.find({});
-	
-	
-=======
 /**
  * 获取 tag 列表
  */
@@ -253,13 +233,13 @@ route.post("/bookTag", async ctx => {
       msg: "tag 已存在"
     });
   }
-  tagRes = await MTagList.create({ tagName: tag });
+  
+  await MTagList.create({ tagName: tag });
 
   ctx.body = {
     code: 0,
     msg: "tag 添加成功"
   };
->>>>>>> 9b3a19f8287109d58eb5a37a5ca4defb14d1fffb
 });
 
 module.exports = route;

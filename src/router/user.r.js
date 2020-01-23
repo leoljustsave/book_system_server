@@ -81,7 +81,7 @@ route.get("/user", async ctx => {
   // 该 token 不存在
   if (!userRes) {
     return (ctx.body = {
-      code: 2,
+      code: 401,
       msg: "token 不存在"
     });
   }
@@ -211,6 +211,82 @@ route.patch("/user", async ctx => {
   ctx.body = {
     code: 0,
     msg: "更新成功"
+  };
+});
+
+// 用户收藏书籍
+route.patch("/user/collect", async ctx => {
+  let { token } = ctx.request.headers;
+  let { bookId, type } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = { code: 401 });
+  }
+
+  let userDoc = await MUser.findById(token);
+
+  // 0 - 去除; 1 - 添加
+  if (!userDoc.collectBook.includes(bookId) && type) {
+    console.log("add");
+    userDoc.collectBook.push(bookId);
+  } else if (!type) {
+    console.log("remove");
+    userDoc.collectBook.pull(bookId);
+  }
+
+  await userDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
+  };
+});
+
+// 用户点赞书籍
+route.patch("/user/like", async ctx => {
+  let { token } = ctx.request.headers;
+  let { bookId, type } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = { code: 401 });
+  }
+
+  let userDoc = await MUser.findById(token);
+
+  // 0 - 去除; 1 - 添加
+  if (!userDoc.likeBook.includes(bookId) && type) {
+    console.log("add");
+    userDoc.likeBook.push(bookId);
+  } else if (!type) {
+    console.log("remove");
+    userDoc.likeBook.pull(bookId);
+  }
+
+  await userDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
+  };
+});
+
+// 用户阅读该书籍
+route.patch("/user/readSet", async ctx => {
+  let { token } = ctx.request.headers;
+  let { setting } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = { code: 401 });
+  }
+
+  let userDoc = await MUser.findById(token);
+  userDoc.readSet = Object.assign({}, userDoc.readSet, setting);
+
+  await userDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
   };
 });
 

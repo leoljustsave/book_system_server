@@ -1,6 +1,6 @@
 const env = {
 	lizhi: {
-		get: "http://www.resource.com:8000",
+		get: "http://www.resource.com:8001",
 		put: "D:/mine_za/NGINX-RESOURCE"
 	}
 };
