@@ -38,23 +38,13 @@ route.get("/article/:id", async ctx => {
 
   let articleRes;
   let contentRes;
+  let authorRes;
 
   try {
     articleRes = await MArticle.findById(id);
-    if (!articleRes) {
-      return (ctx.body = {
-        code: 3,
-        msg: "文章不存在"
-      });
-    }
-
     contentRes = await MArticleData.findById(articleRes.articleId);
-    if (!contentRes) {
-      return (ctx.body = {
-        code: 3,
-        msg: "文章不存在"
-      });
-    }
+    let { account, avatar } = await MUser.findById(articleRes.authorId);
+    authorRes = { account, avatar };
   } catch (e) {
     return (ctx.body = {
       code: 2,
@@ -65,7 +55,7 @@ route.get("/article/:id", async ctx => {
   ctx.body = {
     code: 0,
     msg: "文章获取成功",
-    data: { article: articleRes, content: contentRes }
+    data: { article: articleRes, content: contentRes, author: authorRes }
   };
 });
 

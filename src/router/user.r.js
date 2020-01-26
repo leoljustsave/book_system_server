@@ -12,6 +12,7 @@ const model = require("../utils/model");
 const route = new router();
 const env = config.env.lizhi;
 const MUser = model.getModel("user");
+const MBook = model.getModel("book");
 
 /**
  * 用户登录
@@ -103,7 +104,6 @@ route.get("/user", async ctx => {
  */
 route.post("/user", async ctx => {
   const { body, files } = ctx.request;
-  console.log(body);
   const { avatar } = files;
 
   // TODO: 验证必要数据
@@ -227,10 +227,8 @@ route.patch("/user/collect", async ctx => {
 
   // 0 - 去除; 1 - 添加
   if (!userDoc.collectBook.includes(bookId) && type) {
-    console.log("add");
     userDoc.collectBook.push(bookId);
   } else if (!type) {
-    console.log("remove");
     userDoc.collectBook.pull(bookId);
   }
 
@@ -255,10 +253,8 @@ route.patch("/user/like", async ctx => {
 
   // 0 - 去除; 1 - 添加
   if (!userDoc.likeBook.includes(bookId) && type) {
-    console.log("add");
     userDoc.likeBook.push(bookId);
   } else if (!type) {
-    console.log("remove");
     userDoc.likeBook.pull(bookId);
   }
 
@@ -283,6 +279,69 @@ route.patch("/user/readSet", async ctx => {
   userDoc.readSet = Object.assign({}, userDoc.readSet, setting);
 
   await userDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
+  };
+});
+
+route.get("/user/collection", async ctx => {
+  const { token } = ctx.request.headers;
+  let res = [];
+
+  if (!token) {
+    return (ctx.body = {
+      code: 401
+    });
+  }
+
+  const user = await MUser.findById(token);
+  const collection = user.collectBook;
+  const read = user.readBook;
+
+  res = await Promise.all(
+    collection.map(async collect => {
+      let collectRes = await MBook.findById(collect);
+      const { _id, name, cover, author, press } = collectRes;
+      let = { cfi: "", progress: 0 };
+      let progress = read.filter(item => item._id === _id);
+
+      return { _id, name, cover, author, press, progress };
+    })
+  );
+
+  ctx.body = {
+    code: 0,
+    data: res
+  };
+});
+
+route.patch("/user/updateRecord", async ctx => {
+  const { token } = ctx.request.headers;
+  const { bookId, cfi, percent } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = {
+      code: 0
+    });
+  }
+
+  let user = await MUser.findById(token);
+  if (!user) {
+    return (ctx.body = {
+      code: 0
+    });
+  }
+
+  user.readBook = user.readBook.map(item => {
+    if (item._id === bookId) {
+      item.progress = { cfi, percent };
+    }
+    return item;
+  });
+
+  await user.save()
 
   ctx.body = {
     code: 0,

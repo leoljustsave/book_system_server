@@ -7,6 +7,7 @@ const config = require("../config");
 const route = new router();
 const MBook = model.getModel("book");
 const MTagList = model.getModel("tagList");
+const MUser = model.getModel("user");
 const env = config.env.lizhi;
 
 /**
@@ -18,6 +19,7 @@ const env = config.env.lizhi;
  */
 route.get("/book/:bookId", async ctx => {
   const { bookId } = ctx.params;
+  const { token } = ctx.request.headers;
 
   let bookRes;
   try {
@@ -27,6 +29,24 @@ route.get("/book/:bookId", async ctx => {
         code: 3,
         msg: "书籍不存在"
       });
+    }
+
+    // 已有用户登录 记录阅读数据
+    if (token) {
+      let user = await MUser.findById(token);
+
+      if (user) {
+        let flag = user.readBook.filter(item => item._id === bookId);
+
+        // 初次观看 初始化
+        if (!flag.length) {
+          user.readBook.push({
+            _id: "" + bookRes._id,
+            progress: { cfi: "", percent: 0 }
+          });
+          user.save();
+        }
+      }
     }
   } catch (e) {
     return (ctx.body = {
@@ -233,7 +253,7 @@ route.post("/bookTag", async ctx => {
       msg: "tag 已存在"
     });
   }
-  
+
   await MTagList.create({ tagName: tag });
 
   ctx.body = {
