@@ -286,6 +286,7 @@ route.patch("/user/readSet", async ctx => {
   };
 });
 
+// 用户收藏书籍信息
 route.get("/user/collection", async ctx => {
   const { token } = ctx.request.headers;
   let res = [];
@@ -302,12 +303,12 @@ route.get("/user/collection", async ctx => {
 
   res = await Promise.all(
     collection.map(async collect => {
+      // 根据 bookId 通过 Book 数据库查找
       let collectRes = await MBook.findById(collect);
-      const { _id, name, cover, author, press } = collectRes;
-      let = { cfi: "", progress: 0 };
-      let progress = read.filter(item => item._id === _id);
+      let { _id, name, cover, author } = collectRes;
+      let readRecord = read.filter(item => item._id === collect);
 
-      return { _id, name, cover, author, press, progress };
+      return { percent: readRecord[0].percent, _id, name, cover, author };
     })
   );
 
@@ -327,21 +328,27 @@ route.patch("/user/updateRecord", async ctx => {
     });
   }
 
-  let user = await MUser.findById(token);
-  if (!user) {
+  let userDoc = await MUser.findById(token);
+  if (!userDoc) {
     return (ctx.body = {
       code: 0
     });
   }
 
-  user.readBook = user.readBook.map(item => {
+  let temp = userDoc.readBook.map(item => {
     if (item._id === bookId) {
-      item.progress = { cfi, percent };
+      item.cfi = cfi;
+      item.percent = percent;
     }
     return item;
   });
 
-  await user.save()
+  // TODO: 喵喵喵 ?
+  // 直接保存会无效 和内部机制有关 ?
+  userDoc.readBook = [];
+  userDoc.readBook = temp;
+
+  await userDoc.save();
 
   ctx.body = {
     code: 0,

@@ -20,8 +20,8 @@ const env = config.env.lizhi;
 route.get("/book/:bookId", async ctx => {
   const { bookId } = ctx.params;
   const { token } = ctx.request.headers;
-
   let bookRes;
+  
   try {
     bookRes = await MBook.findById(bookId);
     if (!bookRes) {
@@ -42,9 +42,12 @@ route.get("/book/:bookId", async ctx => {
         if (!flag.length) {
           user.readBook.push({
             _id: "" + bookRes._id,
-            progress: { cfi: "", percent: 0 }
+            cfi: "",
+            percent: 0
           });
           user.save();
+        } else {
+          bookRes.cfi = flag[0].cfi;
         }
       }
     }
@@ -55,10 +58,12 @@ route.get("/book/:bookId", async ctx => {
     });
   }
 
+  let { _id, md5, cfi = "" } = bookRes;
+
   ctx.body = {
     code: 0,
     msg: "书籍获取成功",
-    data: bookRes
+    data: { _id, md5, cfi }
   };
 });
 
