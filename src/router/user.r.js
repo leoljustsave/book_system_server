@@ -8,6 +8,7 @@ const router = require("koa-router");
 // util
 const config = require("../config");
 const model = require("../utils/model");
+const moment = require("moment");
 
 const route = new router();
 const env = config.env.lizhi;
@@ -307,8 +308,16 @@ route.get("/user/collection", async ctx => {
       let collectRes = await MBook.findById(collect);
       let { _id, name, cover, author } = collectRes;
       let readRecord = read.filter(item => item._id === collect);
+      readRecord = readRecord[0];
 
-      return { percent: readRecord[0].percent, _id, name, cover, author };
+      return {
+        percent: readRecord.percent,
+        date: readRecord.date,
+        _id,
+        name,
+        cover,
+        author
+      };
     })
   );
 
@@ -318,6 +327,43 @@ route.get("/user/collection", async ctx => {
   };
 });
 
+// 获取用户阅读记录
+route.get("/user/readHistory", async ctx => {
+  const { token } = ctx.request.headers;
+  let res = [];
+
+  if (!token) {
+    return (ctx.body = {
+      code: 401
+    });
+  }
+
+  const user = await MUser.findById(token);
+  const readBook = user.readBook;
+
+  res = await Promise.all(
+    readBook.map(async item => {
+      let id = item._id;
+      const bookRes = await MBook.findById(id);
+      let { _id, name, cover, author } = bookRes;
+      return {
+        percent: item.percent,
+        date: item.date,
+        _id,
+        name,
+        cover,
+        author
+      };
+    })
+  );
+
+  ctx.body = {
+    code: 0,
+    data: res
+  };
+});
+
+// 更新用户阅读记录
 route.patch("/user/updateRecord", async ctx => {
   const { token } = ctx.request.headers;
   const { bookId, cfi, percent } = ctx.request.body;
@@ -339,6 +385,7 @@ route.patch("/user/updateRecord", async ctx => {
     if (item._id === bookId) {
       item.cfi = cfi;
       item.percent = percent;
+      item.date = moment().format("YYYY-MM-DD");
     }
     return item;
   });

@@ -3,6 +3,7 @@ const file = require("../utils/file");
 const model = require("../utils/model");
 const path = require("path");
 const config = require("../config");
+const moment = require("moment");
 
 const route = new router();
 const MBook = model.getModel("book");
@@ -21,7 +22,7 @@ route.get("/book/:bookId", async ctx => {
   const { bookId } = ctx.params;
   const { token } = ctx.request.headers;
   let bookRes;
-  
+
   try {
     bookRes = await MBook.findById(bookId);
     if (!bookRes) {
@@ -43,7 +44,8 @@ route.get("/book/:bookId", async ctx => {
           user.readBook.push({
             _id: "" + bookRes._id,
             cfi: "",
-            percent: 0
+            percent: 0,
+            date: moment().format("YYYY-MM-DD")
           });
           user.save();
         } else {
