@@ -43,14 +43,15 @@ route.get("/article/:id", async ctx => {
   try {
     articleRes = await MArticle.findById(id);
     contentRes = await MArticleData.findById(articleRes.articleId);
-    let { account, avatar } = await MUser.findById(articleRes.authorId);
-    authorRes = { account, avatar };
+    authorRes = await MUser.findById(articleRes.authorId);
   } catch (e) {
     return (ctx.body = {
       code: 2,
       msg: "获取文章出错"
     });
   }
+
+  authorRes = { account: authorRes.account, avatar: authorRes.avatar };
 
   ctx.body = {
     code: 0,
@@ -115,7 +116,11 @@ route.post("/article", async ctx => {
   info.articleId = articleDataRes._id;
 
   Object.assign(info, defArticleInfo);
-  await MArticle.create(info);
+  const { _id } = await MArticle.create(info);
+
+  let userDoc = await MUser.findById(token);
+  userDoc.article.push(_id);
+  await userDoc.save();
 
   ctx.body = { code: 0, msg: "文章添加成功" };
 });

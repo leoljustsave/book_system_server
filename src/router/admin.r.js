@@ -77,4 +77,44 @@ route.delete("/admin/article", async (ctx, next) => {
   ctx.body = data;
 });
 
+route.post("/search", async (ctx, next) => {
+  let { search } = ctx.request.body;
+  let regex = "";
+
+  search = JSON.parse(search);
+  search.map(item => {
+    regex += `(?=.*?${item})`;
+  });
+
+  regex = new RegExp(regex);
+
+  let bookRes = await MBook.find(
+    { name: { $regex: regex } },
+    {
+      _id: 1,
+      name: 1,
+      cover: 1,
+      author: 1,
+      tag: 1,
+      press: 1
+    }
+  );
+
+  let userRes = await MUser.find(
+    { account: { $regex: regex } },
+    {
+      _id: 1,
+      account: 1,
+      avatar: 1
+    }
+  );
+
+  let articleRes = await MArticle.find({ title: { $regex: regex } });
+
+  ctx.body = {
+    code: 0,
+    data: { bookRes, userRes, articleRes }
+  };
+});
+
 module.exports = route;

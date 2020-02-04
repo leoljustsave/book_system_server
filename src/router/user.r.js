@@ -14,6 +14,7 @@ const route = new router();
 const env = config.env.lizhi;
 const MUser = model.getModel("user");
 const MBook = model.getModel("book");
+const MArticle = model.getModel("article");
 
 /**
  * 用户登录
@@ -344,22 +345,41 @@ route.get("/user/readHistory", async ctx => {
   res = await Promise.all(
     readBook.map(async item => {
       let id = item._id;
-      const bookRes = await MBook.findById(id);
-      let { _id, name, cover, author } = bookRes;
-      return {
-        percent: item.percent,
-        date: item.date,
-        _id,
-        name,
-        cover,
-        author
-      };
+      let bookRes = await MBook.findById(id, {
+        _id: 1,
+        name: 1,
+        cover: 1,
+        author: 1
+      });
+      bookRes.percent = item.percent;
+      bookRes.date = item.date;
+
+      return bookRes;
     })
   );
 
   ctx.body = {
     code: 0,
     data: res
+  };
+});
+
+// 获取用户写的读后感
+route.get("/user/article", async ctx => {
+  const { token } = ctx.request.headers;
+  let res = [];
+
+  if (!token) {
+    return (ctx.body = {
+      code: 401
+    });
+  }
+
+  let articleRes = await MArticle.find({ authorId: token });
+
+  ctx.body = {
+    code: 0,
+    data: articleRes
   };
 });
 

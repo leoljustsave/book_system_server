@@ -38,6 +38,8 @@ route.get("/book/:bookId", async ctx => {
 
       if (user) {
         let flag = user.readBook.filter(item => item._id === bookId);
+        let isLike = user.likeBook.filter(item => item === bookId);
+        let isCollect = user.collectBook.filter(item => item === bookId);
 
         // 初次观看 初始化
         if (!flag.length) {
@@ -51,6 +53,9 @@ route.get("/book/:bookId", async ctx => {
         } else {
           bookRes.cfi = flag[0].cfi;
         }
+
+        bookRes.isLike = !!isLike.length;
+        bookRes.isCollect = !!isCollect.length;
       }
     }
   } catch (e) {
@@ -60,12 +65,12 @@ route.get("/book/:bookId", async ctx => {
     });
   }
 
-  let { _id, md5, cfi = "" } = bookRes;
+  let { _id, md5, cfi = "", isLike = false, isCollect = false } = bookRes;
 
   ctx.body = {
     code: 0,
     msg: "书籍获取成功",
-    data: { _id, md5, cfi }
+    data: { _id, md5, cfi, isLike, isCollect }
   };
 });
 
