@@ -243,7 +243,7 @@ route.patch("/user/collect", async ctx => {
 });
 
 // 用户点赞书籍
-route.patch("/user/like", async ctx => {
+route.patch("/user/collect/like", async ctx => {
   let { token } = ctx.request.headers;
   let { bookId, type } = ctx.request.body;
 
@@ -258,6 +258,67 @@ route.patch("/user/like", async ctx => {
     userDoc.likeBook.push(bookId);
   } else if (!type) {
     userDoc.likeBook.pull(bookId);
+  }
+
+  await userDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
+  };
+});
+
+// 用户点赞文章
+route.patch("/user/article/like", async ctx => {
+  let { token } = ctx.request.headers;
+  let { articleId, type } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = { code: 401 });
+  }
+
+  let userDoc = await MUser.findById(token);
+  let articleDoc = await MArticle.findById(articleId);
+
+  // 0 - 去除; 1 - 添加
+  if (!userDoc.likeArticle.includes(articleId) && type) {
+    userDoc.likeArticle.push(articleId);
+    articleDoc.like++;
+  } else if (!type) {
+    userDoc.likeArticle.pull(articleId);
+    articleDoc.like--;
+  }
+
+  console.log(articleDoc);
+
+  await userDoc.save();
+  await articleDoc.save();
+
+  ctx.body = {
+    code: 0,
+    msg: "success"
+  };
+});
+
+// 用户收藏文章
+route.patch("/user/article/collect", async ctx => {
+  let { token } = ctx.request.headers;
+  let { articleId, type } = ctx.request.body;
+
+  if (!token) {
+    return (ctx.body = { code: 401 });
+  }
+
+  let userDoc = await MUser.findById(token);
+  let articleDoc = await MArticle.findById(articleId);
+
+  // 0 - 去除; 1 - 添加
+  if (!userDoc.collectArticle.includes(articleId) && type) {
+    userDoc.collectArticle.push(articleId);
+    articleDoc.collect++;
+  } else if (!type) {
+    userDoc.collectArticle.pull(articleId);
+    articleDoc.collect--;
   }
 
   await userDoc.save();
@@ -375,7 +436,7 @@ route.get("/user/article", async ctx => {
     });
   }
 
-  let articleRes = await MArticle.find({ authorId: token });
+  let articleRes = await MArticle.find({ authorId: token }).sort({ time: -1 });
 
   ctx.body = {
     code: 0,

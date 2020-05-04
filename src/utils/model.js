@@ -59,12 +59,15 @@ const models = {
     account: { type: String, required: true },
     password: { type: String, required: true },
     likeTag: { type: Array, default: [] },
-    likeBook: { type: Array, default: [] },
-    article: { type: Array, default: [] },
     readBook: { type: Array, default: [] },
-    readSet: { type: Object, default: {} },
+    likeBook: { type: Array, default: [] },
     collectBook: { type: Array, default: [] },
-    uploadBook: { type: Array, default: [] }
+    article: { type: Array, default: [] },
+    likeArticle: { type: Array, default: [] },
+    collectArticle: { type: Array, default: [] },
+    readSet: { type: Object, default: {} },
+    uploadBook: { type: Array, default: [] },
+    type: { type: Number, required: true, default: 0}
   },
   tagList: {
     tagName: { type: String, required: true }
